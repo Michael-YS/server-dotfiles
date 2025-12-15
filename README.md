@@ -26,14 +26,17 @@ This setup prioritizes:
 ---
 
 ## Repository Structure
+
+```
 .
 ├── zsh/
-│ ├── zshrc # main entry point
-│ └── p10k.zsh # powerlevel10k config (full profile only)
+│   ├── zshrc                 # main entry point
+│   └── p10k.zsh              # powerlevel10k config (full profile only)
 ├── profiles/
-│ ├── low
-│ └── full
+│   ├── low
+│   └── full
 └── README.md
+```
 
 ---
 
