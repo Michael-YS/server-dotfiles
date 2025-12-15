@@ -163,5 +163,22 @@ else
   info "~/.zshrc already linked"
 fi
 
+# Link powerlevel10k config when using full profile
+if [ "$PROFILE" = "full" ]; then
+  P10K_TARGET="$HOME/.p10k.zsh"
+  P10K_SOURCE="$DOTFILES_DIR/zsh/p10k.zsh"
+  if [ -e "$P10K_TARGET" ] && [ ! -L "$P10K_TARGET" ]; then
+    BACKUP="$P10K_TARGET.bak.$(date +%s)"
+    warn "Existing ~/.p10k.zsh found. Backing up to $BACKUP"
+    mv "$P10K_TARGET" "$BACKUP"
+  fi
+  if [ ! -L "$P10K_TARGET" ]; then
+    info "Linking ~/.p10k.zsh -> $P10K_SOURCE"
+    ln -s "$P10K_SOURCE" "$P10K_TARGET"
+  else
+    info "~/.p10k.zsh already linked"
+  fi
+fi
+
 info "Installation complete."
 info "Open a new terminal or run: exec zsh"
