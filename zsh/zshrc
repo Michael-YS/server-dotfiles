@@ -1,0 +1,33 @@
+# ============================================================================
+# INTERACTIVE SHELL CHECK
+# ============================================================================
+[[ $- == *i* ]] || return 0
+
+
+# ============================================================================
+# PROFILE DETECTION
+# ============================================================================
+PROFILE_FILE="$HOME/.config/dotfiles/profile"
+
+if [[ -r "$PROFILE_FILE" ]]; then
+  DOTFILES_PROFILE=$(<"$PROFILE_FILE")
+else
+  DOTFILES_PROFILE="low"
+fi
+
+[[ $DOTFILES_PROFILE =~ ^(low|full)$ ]] || DOTFILES_PROFILE="low"
+
+
+# ============================================================================
+# DISPATCH
+# ============================================================================
+DOTFILES_ROOT="$HOME/.dotfiles/zsh"
+
+case "$DOTFILES_PROFILE" in
+  full)
+    source "$DOTFILES_ROOT/zshrc.full"
+    ;;
+  *)
+    source "$DOTFILES_ROOT/zshrc.low"
+    ;;
+esac

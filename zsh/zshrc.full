@@ -1,0 +1,29 @@
+# ============================================================================
+# FULL PROFILE
+# oh-my-zsh + powerlevel10k
+# ============================================================================
+
+# ---- oh-my-zsh ----
+export ZSH="$HOME/.oh-my-zsh"
+ZSH_THEME="powerlevel10k/powerlevel10k"
+plugins=(git)
+
+# ---- p10k instant prompt (must be early) ----
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
+# ---- load oh-my-zsh ----
+source "$ZSH/oh-my-zsh.sh"
+
+# ---- p10k config ----
+[[ -f "$HOME/.dotfiles/zsh/p10k.zsh" ]] && source "$HOME/.dotfiles/zsh/p10k.zsh"
+
+# ---- common stuff ----
+alias vi=vim
+export PATH="$PATH:$HOME/.local/bin"
+
+# ---- terminal working dir ----
+precmd () {
+  echo -n "\x1b]1337;CurrentDir=$(pwd)\x07"
+}

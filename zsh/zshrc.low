@@ -1,0 +1,27 @@
+# ============================================================================
+# LOW PROFILE
+# Minimal, fast, dependency-free
+# ============================================================================
+
+# ---- history ----
+HISTFILE=~/.zsh_history
+HISTSIZE=1000
+SAVEHIST=1000
+setopt histappend
+setopt sharehistory
+setopt incappendhistory
+
+# ---- prompt ----
+PROMPT='%n@%m:%~%# '
+RPROMPT=''
+
+# ---- aliases ----
+alias vi=vim
+
+# ---- path ----
+export PATH="$PATH:$HOME/.local/bin"
+
+# ---- terminal working dir (Tabby / iTerm compatible) ----
+precmd () {
+  echo -n "\x1b]1337;CurrentDir=$(pwd)\x07"
+}
