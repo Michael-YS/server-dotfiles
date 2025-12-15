@@ -10,6 +10,7 @@ ZSHRC_TARGET="$HOME/.zshrc"
 PROFILE_DIR="$HOME/.config/dotfiles"
 PROFILE_FILE="$PROFILE_DIR/profile"
 OHMYZSH_DIR="$HOME/.oh-my-zsh"
+P10K_DIR="${ZSH_CUSTOM:-$OHMYZSH_DIR/custom}/themes/powerlevel10k"
 
 # =========================
 # UTIL
@@ -48,21 +49,8 @@ else
 fi
 
 
-# =========================
-# ZSHRC LINK
-# =========================
-if [ -e "$ZSHRC_TARGET" ] && [ ! -L "$ZSHRC_TARGET" ]; then
-  BACKUP="$ZSHRC_TARGET.bak.$(date +%s)"
-  warn "Existing ~/.zshrc found. Backing up to $BACKUP"
-  mv "$ZSHRC_TARGET" "$BACKUP"
-fi
-
-if [ ! -L "$ZSHRC_TARGET" ]; then
-  info "Linking ~/.zshrc -> $DOTFILES_DIR/zsh/zshrc"
-  ln -s "$DOTFILES_DIR/zsh/zshrc" "$ZSHRC_TARGET"
-else
-  info "~/.zshrc already linked"
-fi
+# (moved) zshrc linking will be performed at the end to avoid
+# oh-my-zsh installer overwriting the symlink with its default.
 
 # =========================
 # PROFILE SELECTION
@@ -120,7 +108,7 @@ if [ "$PROFILE" = "full" ]; then
     case "$yn" in
       y|Y)
         info "Installing oh-my-zsh..."
-        sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+        RUNZSH=no CHSH=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
         info "oh-my-zsh installed"
         ;;
       *)
@@ -133,7 +121,47 @@ if [ "$PROFILE" = "full" ]; then
 fi
 
 # =========================
+# POWERLEVEL10K CHECK (FULL ONLY)
+# =========================
+if [ "$PROFILE" = "full" ]; then
+  if [ ! -d "$OHMYZSH_DIR" ]; then
+    warn "Skipping powerlevel10k install because oh-my-zsh is missing."
+  elif [ -d "$P10K_DIR" ]; then
+    info "powerlevel10k already installed"
+  else
+    warn "powerlevel10k not found at $P10K_DIR"
+    printf "Install powerlevel10k now? [y/N]: "
+    read yn
+    case "$yn" in
+      y|Y)
+        info "Installing powerlevel10k..."
+        git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
+        info "powerlevel10k installed"
+        ;;
+      *)
+        warn "Skipped powerlevel10k installation. Full profile will use the fallback theme."
+        ;;
+    esac
+  fi
+fi
+
+# =========================
 # DONE
 # =========================
+# Link ~/.zshrc to repository config at the very end to ensure
+# it isn't replaced by oh-my-zsh's default template during install.
+if [ -e "$ZSHRC_TARGET" ] && [ ! -L "$ZSHRC_TARGET" ]; then
+  BACKUP="$ZSHRC_TARGET.bak.$(date +%s)"
+  warn "Existing ~/.zshrc found. Backing up to $BACKUP"
+  mv "$ZSHRC_TARGET" "$BACKUP"
+fi
+
+if [ ! -L "$ZSHRC_TARGET" ]; then
+  info "Linking ~/.zshrc -> $DOTFILES_DIR/zsh/zshrc"
+  ln -s "$DOTFILES_DIR/zsh/zshrc" "$ZSHRC_TARGET"
+else
+  info "~/.zshrc already linked"
+fi
+
 info "Installation complete."
 info "Open a new terminal or run: exec zsh"
