@@ -31,7 +31,7 @@ command -v git >/dev/null 2>&1 || {
 # =========================
 clone_repo() {
   if [ -n "${GITHUB_TOKEN:-}" ]; then
-    git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/YOURNAME/server-dotfiles.git" "$DOTFILES_DIR"
+    git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/Michael-YS/server-dotfiles.git" "$DOTFILES_DIR"
   else
     err "GITHUB_TOKEN not set. Cannot access private repository."
     err "Set GITHUB_TOKEN or use cloud-init to inject it."
