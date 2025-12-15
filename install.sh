@@ -4,7 +4,7 @@ set -eu
 # =========================
 # CONFIG
 # =========================
-REPO_URL="https://github.com/YOURNAME/server-dotfiles.git"
+REPO_URL="https://github.com/Michael-YS/server-dotfiles.git"
 DOTFILES_DIR="$HOME/.dotfiles"
 ZSHRC_TARGET="$HOME/.zshrc"
 PROFILE_DIR="$HOME/.config/dotfiles"
@@ -27,15 +27,26 @@ command -v git >/dev/null 2>&1 || {
 }
 
 # =========================
-# CLONE / UPDATE
+# CLONE / UPDATE (private repo aware)
 # =========================
+clone_repo() {
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/YOURNAME/server-dotfiles.git" "$DOTFILES_DIR"
+  else
+    err "GITHUB_TOKEN not set. Cannot access private repository."
+    err "Set GITHUB_TOKEN or use cloud-init to inject it."
+    exit 1
+  fi
+}
+
 if [ -d "$DOTFILES_DIR/.git" ]; then
   info "Dotfiles repo already exists. Updating..."
   git -C "$DOTFILES_DIR" pull --ff-only
 else
   info "Cloning dotfiles repo..."
-  git clone "$REPO_URL" "$DOTFILES_DIR"
+  clone_repo
 fi
+
 
 # =========================
 # ZSHRC LINK
