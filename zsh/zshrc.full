@@ -18,12 +18,3 @@ source "$ZSH/oh-my-zsh.sh"
 
 # ---- p10k config ----
 [[ -f "$HOME/.dotfiles/zsh/p10k.zsh" ]] && source "$HOME/.dotfiles/zsh/p10k.zsh"
-
-# ---- common stuff ----
-alias vi=vim
-export PATH="$PATH:$HOME/.local/bin"
-
-# ---- terminal working dir ----
-precmd () {
-  echo -n "\x1b]1337;CurrentDir=$(pwd)\x07"
-}
