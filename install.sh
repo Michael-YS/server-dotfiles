@@ -28,16 +28,27 @@ command -v git >/dev/null 2>&1 || {
 }
 
 # =========================
-# CLONE / UPDATE (private repo aware)
+# CLONE / UPDATE (public repo first, then token-aware)
 # =========================
 clone_repo() {
-  if [ -n "${GITHUB_TOKEN:-}" ]; then
-    git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/Michael-YS/server-dotfiles.git" "$DOTFILES_DIR"
-  else
-    err "GITHUB_TOKEN not set. Cannot access private repository."
-    err "Set GITHUB_TOKEN or use cloud-init to inject it."
-    exit 1
+  # 先尝试普通 clone（假设是 public repo）
+  if git clone "https://github.com/Michael-YS/server-dotfiles.git" "$DOTFILES_DIR" 2>/dev/null; then
+    return 0
   fi
+
+  # clone 失败，检查 token
+  if [ -n "${GITHUB_TOKEN:-}" ]; then
+    err "Anonymous clone failed. Retrying with token..."
+    if git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/Michael-YS/server-dotfiles.git" "$DOTFILES_DIR"; then
+      return 0
+    fi
+    err "Clone with token failed."
+    return 1
+  fi
+
+  err "GITHUB_TOKEN not set. Cannot access private repository."
+  err "Set GITHUB_TOKEN or use cloud-init to inject it."
+  return 1
 }
 
 if [ -d "$DOTFILES_DIR/.git" ]; then

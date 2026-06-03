@@ -61,7 +61,8 @@ sh /tmp/install.sh
 ```
 
 Notes:
-- Current installer expects a private repository and uses `GITHUB_TOKEN` for clone.
+- Installer first tries anonymous clone (for public repos).
+- If that fails and `GITHUB_TOKEN` is set, it retries with the token.
 - If `GITHUB_TOKEN` is not set, clone will fail.
 
 Example:
