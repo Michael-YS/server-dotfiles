@@ -68,6 +68,6 @@ _dotfiles_report_current_dir() {
 }
 
 autoload -Uz add-zsh-hook
-if (( ${precmd_functions[(I)_dotfiles_report_current_dir]} == 0 )); then
+if [[ -z "${precmd_functions[(r)_dotfiles_report_current_dir]}" ]]; then
     add-zsh-hook precmd _dotfiles_report_current_dir
 fi
