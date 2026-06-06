@@ -1,24 +1,20 @@
 # Server Zsh Dotfiles
 
-Minimal, profile-based Zsh dotfiles for servers and VPS.
+Minimal Zsh dotfiles for servers and VPS, with oh-my-zsh + powerlevel10k.
 
 This setup is designed for:
 - Fast startup
 - Safe behavior in non-interactive shells
-- Minimal dependencies by default
-- Optional full interactive experience when needed
+- Single source of truth for all shell config
 
 ---
 
 ## Features
 
-- Profile-based configuration:
-  - `low` (default): minimal, fast, dependency-free
-  - `full`: oh-my-zsh + powerlevel10k
-- Non-interactive shell safe:
-  - `scp`, `rsync`, `ssh host cmd` won't load heavy interactive config
-- Single source of truth:
-  - All shell config lives in this repo
+- oh-my-zsh + powerlevel10k theme
+- Git plugin enabled
+- Non-interactive shell safe: `scp`, `rsync`, `ssh host cmd` won't load heavy config
+- Common aliases and settings included
 
 ---
 
@@ -29,10 +25,9 @@ This setup is designed for:
 ├── install.sh
 ├── README.md
 └── zsh/
-    ├── zshrc         # main entry point; dispatches by profile
-    ├── zshrc.low     # low profile
-    ├── zshrc.full    # full profile
-    └── p10k.zsh      # powerlevel10k config used by full profile
+    ├── zshrc      # main entry point
+    ├── zshrc.full # full config (oh-my-zsh + p10k + common settings)
+    └── p10k.zsh   # powerlevel10k config
 ```
 
 ---
@@ -41,13 +36,7 @@ This setup is designed for:
 
 1. `~/.zshrc` is symlinked to `~/.dotfiles/zsh/zshrc`.
 2. `zshrc` exits immediately for non-interactive shells.
-3. For interactive shells, it reads profile from:
-   - `~/.config/dotfiles/profile`
-4. Based on profile value:
-   - `low` -> source `zsh/zshrc.low`
-   - `full` -> source `zsh/zshrc.full`
-
-If profile file is missing or invalid, it falls back to `low`.
+3. For interactive shells, it sources the full config.
 
 ---
 
@@ -77,49 +66,18 @@ sh /tmp/install.sh
 ```bash
 git clone https://github.com/Michael-YS/server-dotfiles.git ~/.dotfiles
 ln -sf ~/.dotfiles/zsh/zshrc ~/.zshrc
-mkdir -p ~/.config/dotfiles
-echo low > ~/.config/dotfiles/profile
 ```
 
-If you want full profile:
-
-```bash
-echo full > ~/.config/dotfiles/profile
-```
+Installer will set up oh-my-zsh and powerlevel10k for you.
 
 ---
 
-## Profiles
+## Requirements
 
-### `low`
+- `~/.oh-my-zsh` — oh-my-zsh framework
+- `~/.oh-my-zsh/custom/themes/powerlevel10k` — powerlevel10k theme
 
-- No oh-my-zsh dependency
-- Minimal history config
-- Simple prompt (`user@host:cwd#`)
-- Suitable for low-memory or remote server environments
-
-### `full`
-
-- Uses oh-my-zsh
-- Theme: powerlevel10k
-- Plugin: `git`
-- Requires:
-  - `~/.oh-my-zsh`
-  - powerlevel10k theme under oh-my-zsh custom themes
-
-Installer can set these up for you interactively.
-
----
-
-## Switching Profile
-
-```bash
-echo low > ~/.config/dotfiles/profile
-# or
-echo full > ~/.config/dotfiles/profile
-
-exec zsh
-```
+Installer can handle both automatically.
 
 ---
 
@@ -134,14 +92,6 @@ exec zsh
 
 ## Troubleshooting
 
-### Full profile did not load
-
-Check profile file:
-
-```bash
-cat ~/.config/dotfiles/profile
-```
-
 Check oh-my-zsh path:
 
 ```bash
@@ -154,12 +104,8 @@ Check p10k theme path:
 test -d ~/.oh-my-zsh/custom/themes/powerlevel10k && echo ok || echo missing
 ```
 
-### Non-interactive commands are noisy
-
-Ensure your shell entrypoint is `zsh/zshrc` from this repo and that the first check keeps non-interactive shells returning early.
-
 ---
 
 ## License
 
-Personal dotfiles repository. Add a license file if you plan to distribute or open-source this project.
+Personal dotfiles repository.

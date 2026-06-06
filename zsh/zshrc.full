@@ -18,3 +18,54 @@ source "$ZSH/oh-my-zsh.sh"
 
 # ---- p10k config ----
 [[ -f "$HOME/.dotfiles/zsh/p10k.zsh" ]] && source "$HOME/.dotfiles/zsh/p10k.zsh"
+
+
+# ============================================================================
+# HISTORY
+# ============================================================================
+HISTFILE=~/.zsh_history
+HISTSIZE=1000
+SAVEHIST=1000
+setopt histappend
+setopt sharehistory
+setopt incappendhistory
+
+
+# ============================================================================
+# COMMON INTERACTIVE SETTINGS
+# ============================================================================
+alias vi=vim
+
+if ls --color=auto >/dev/null 2>&1; then
+    alias ll='ls -lah --color=auto'
+else
+    alias ll='ls -lah'
+fi
+alias la='ls -A'
+alias l='ls -CF'
+alias ..='cd ..'
+alias ...='cd ../..'
+alias cp='cp -i'
+alias mv='mv -i'
+alias rm='rm -i'
+
+if command -v nvim &>/dev/null; then
+    alias nv='nvim'
+fi
+
+setopt noclobber
+setopt rm_star_wait
+setopt hist_ignore_dups
+setopt hist_ignore_space
+setopt no_beep
+
+export PATH="$PATH:$HOME/.local/bin"
+
+_dotfiles_report_current_dir() {
+    echo -n "\x1b]1337;CurrentDir=$(pwd)\x07"
+}
+
+autoload -Uz add-zsh-hook
+if [[ -z "${precmd_functions[(r)_dotfiles_report_current_dir]}" ]]; then
+    add-zsh-hook precmd _dotfiles_report_current_dir
+fi
