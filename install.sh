@@ -1,140 +1,94 @@
-#!/usr/bin/env sh
-set -eu
+#!/usr/bin/env bash
+set -euo pipefail
 
-# =========================
-# CONFIG
-# =========================
-REPO_URL="https://github.com/Michael-YS/server-dotfiles.git"
-DOTFILES_DIR="$HOME/.dotfiles"
-ZSHRC_TARGET="$HOME/.zshrc"
-OHMYZSH_DIR="$HOME/.oh-my-zsh"
-P10K_DIR="${ZSH_CUSTOM:-$OHMYZSH_DIR/custom}/themes/powerlevel10k"
+# If utils.sh doesn't exist, we're running via curl - clone the repo first
+if [ ! -f "$(dirname "$0")/Server-Init/utils.sh" ]; then
+    REPO_URL="https://github.com/Michael-YS/server-dotfiles.git"
+    TEMP_DIR=$(mktemp -d)
+    echo "[INFO] Cloning repo for remote installation..."
+    git clone --depth=1 "$REPO_URL" "$TEMP_DIR"
+    exec bash "$TEMP_DIR/install.sh" "$@"
+fi
 
-# =========================
-# UTIL
-# =========================
-info() { printf "\033[1;32m[INFO]\033[0m %s\n" "$*"; }
-warn() { printf "\033[1;33m[WARN]\033[0m %s\n" "$*"; }
-err()  { printf "\033[1;31m[ERR ]\033[0m %s\n" "$*" >&2; }
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+source "$SCRIPT_DIR/Server-Init/utils.sh"
 
-# =========================
-# PRECHECK
-# =========================
-command -v git >/dev/null 2>&1 || {
-  err "git not found. Please install git first."
-  exit 1
+usage() {
+    cat <<EOF
+Usage: $(basename "$0") [OPTION]
+
+Options:
+    --dotfiles     Install dotfiles only (default)
+    --server       Install server packages (Docker, Tailscale)
+    --all          Install both dotfiles and server packages
+    -h, --help     Show this help message
+
+EOF
 }
 
-# =========================
-# CLONE / UPDATE
-# =========================
-clone_repo() {
-  if git clone "https://github.com/Michael-YS/server-dotfiles.git" "$DOTFILES_DIR" 2>/dev/null; then
-    return 0
-  fi
+install_dotfiles() {
+    bash "$SCRIPT_DIR/install_dotfiles.sh"
+}
 
-  if [ -n "${GITHUB_TOKEN:-}" ]; then
-    err "Anonymous clone failed. Retrying with token..."
-    if git clone "https://x-access-token:${GITHUB_TOKEN}@github.com/Michael-YS/server-dotfiles.git" "$DOTFILES_DIR"; then
-      return 0
+install_server() {
+    local packages=(git python3 vim zsh)
+
+    log_info "=== Installing base packages ==="
+    pkg_install "${packages[@]}"
+
+    log_info "=== Installing Docker ==="
+    install_docker
+
+    log_info "=== Installing Tailscale ==="
+    install_tailscale
+
+    log_info "=== Server setup complete ==="
+}
+
+install_docker() {
+    if command -v docker &>/dev/null; then
+        log_info "Docker already installed"
+        return
     fi
-    err "Clone with token failed."
-    return 1
-  fi
 
-  err "GITHUB_TOKEN not set. Cannot access private repository."
-  return 1
+    apt update
+    apt install -y ca-certificates curl
+    install -m 0755 -d /etc/apt/keyrings
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg -o /etc/apt/keyrings/docker.asc
+    chmod a+r /etc/apt/keyrings/docker.asc
+
+    tee /etc/apt/sources.list.d/docker.sources <<EOF
+Types: deb
+URIs: https://download.docker.com/linux/ubuntu
+Suites: $(. /etc/os-release && echo "${UBUNTU_CODENAME:-$VERSION_CODENAME}")
+Components: stable
+Architectures: $(dpkg --print-architecture)
+Signed-By: /etc/apt/keyrings/docker.asc
+EOF
+
+    apt update
+    apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 }
 
-if [ -d "$DOTFILES_DIR/.git" ]; then
-  info "Dotfiles repo already exists. Updating..."
-  git -C "$DOTFILES_DIR" pull --ff-only
-else
-  info "Cloning dotfiles repo..."
-  clone_repo
-fi
+install_tailscale() {
+    if command -v tailscale &>/dev/null; then
+        log_info "Tailscale already installed"
+        return
+    fi
 
+    curl -fsSL https://tailscale.com/install.sh | sh
+}
 
-# =========================
-# OH-MY-ZSH
-# =========================
-if [ ! -d "$OHMYZSH_DIR" ]; then
-  warn "oh-my-zsh not found at $OHMYZSH_DIR"
-  printf "Install oh-my-zsh now? [y/N]: "
-  read yn
-  case "$yn" in
-    y|Y)
-      info "Installing oh-my-zsh..."
-      RUNZSH=no CHSH=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-      info "oh-my-zsh installed"
-      ;;
-    *)
-      warn "Skipped oh-my-zsh installation."
-      ;;
-  esac
-else
-  info "oh-my-zsh already installed"
-fi
+main() {
+    require_root
 
+    case "${1:-all}" in
+        --dotfiles)  install_dotfiles ;;
+        --server)    install_server ;;
+        --all)       install_dotfiles && install_server ;;
+        -h|--help)   usage; exit 0 ;;
+        *)           usage; exit 1 ;;
+    esac
+}
 
-# =========================
-# POWERLEVEL10K
-# =========================
-if [ ! -d "$OHMYZSH_DIR" ]; then
-  warn "Skipping powerlevel10k install because oh-my-zsh is missing."
-elif [ -d "$P10K_DIR" ]; then
-  info "powerlevel10k already installed"
-else
-  warn "powerlevel10k not found at $P10K_DIR"
-  printf "Install powerlevel10k now? [y/N]: "
-  read yn
-  case "$yn" in
-    y|Y)
-      info "Installing powerlevel10k..."
-      git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
-      info "powerlevel10k installed"
-      ;;
-    *)
-      warn "Skipped powerlevel10k installation."
-      ;;
-  esac
-fi
-
-
-# =========================
-# LINK ZSHRC
-# =========================
-if [ -e "$ZSHRC_TARGET" ] && [ ! -L "$ZSHRC_TARGET" ]; then
-  BACKUP="$ZSHRC_TARGET.bak.$(date +%s)"
-  warn "Existing ~/.zshrc found. Backing up to $BACKUP"
-  mv "$ZSHRC_TARGET" "$BACKUP"
-fi
-
-if [ ! -L "$ZSHRC_TARGET" ]; then
-  info "Linking ~/.zshrc -> $DOTFILES_DIR/zsh/zshrc"
-  ln -s "$DOTFILES_DIR/zsh/zshrc" "$ZSHRC_TARGET"
-else
-  info "~/.zshrc already linked"
-fi
-
-
-# =========================
-# LINK P10K CONFIG
-# =========================
-P10K_TARGET="$HOME/.p10k.zsh"
-P10K_SOURCE="$DOTFILES_DIR/zsh/p10k.zsh"
-if [ -e "$P10K_TARGET" ] && [ ! -L "$P10K_TARGET" ]; then
-  BACKUP="$P10K_TARGET.bak.$(date +%s)"
-  warn "Existing ~/.p10k.zsh found. Backing up to $BACKUP"
-  mv "$P10K_TARGET" "$BACKUP"
-fi
-if [ ! -L "$P10K_TARGET" ]; then
-  info "Linking ~/.p10k.zsh -> $P10K_SOURCE"
-  ln -s "$P10K_SOURCE" "$P10K_TARGET"
-else
-  info "~/.p10k.zsh already linked"
-fi
-
-
-info "Installation complete."
-info "Open a new terminal or run: exec zsh"
+main "$@"
