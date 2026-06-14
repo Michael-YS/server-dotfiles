@@ -1,4 +1,11 @@
 #!/usr/bin/env bash
+# Re-exec with bash if running under sh (e.g., curl | sh on Ubuntu where sh=dash)
+if [ -z "${BASH_VERSION:-}" ]; then
+    ARGS="$@"
+    TMP=$(mktemp)
+    cat > "$TMP"
+    exec bash "$TMP" $ARGS
+fi
 set -euo pipefail
 
 # If utils.sh doesn't exist, we're running via curl - clone the repo first
