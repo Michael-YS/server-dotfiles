@@ -60,18 +60,9 @@ fi
 # =========================
 if [ ! -d "$OHMYZSH_DIR" ]; then
   warn "oh-my-zsh not found at $OHMYZSH_DIR"
-  printf "Install oh-my-zsh now? [y/N]: "
-  read yn
-  case "$yn" in
-    y|Y)
-      info "Installing oh-my-zsh..."
-      RUNZSH=no CHSH=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
-      info "oh-my-zsh installed"
-      ;;
-    *)
-      warn "Skipped oh-my-zsh installation."
-      ;;
-  esac
+  info "Installing oh-my-zsh..."
+  RUNZSH=no CHSH=yes sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended
+  info "oh-my-zsh installed"
 else
   info "oh-my-zsh already installed"
 fi
@@ -86,18 +77,9 @@ elif [ -d "$P10K_DIR" ]; then
   info "powerlevel10k already installed"
 else
   warn "powerlevel10k not found at $P10K_DIR"
-  printf "Install powerlevel10k now? [y/N]: "
-  read yn
-  case "$yn" in
-    y|Y)
-      info "Installing powerlevel10k..."
-      git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
-      info "powerlevel10k installed"
-      ;;
-    *)
-      warn "Skipped powerlevel10k installation."
-      ;;
-  esac
+  info "Installing powerlevel10k..."
+  git clone --depth=1 https://github.com/romkatv/powerlevel10k.git "$P10K_DIR"
+  info "powerlevel10k installed"
 fi
 
 
