@@ -19,6 +19,7 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/Server-Init/utils.sh"
+source "$SCRIPT_DIR/Server-Init/utils/mask_apt.sh"
 
 usage() {
     cat <<EOF
@@ -38,11 +39,19 @@ install_dotfiles() {
 }
 
 install_server() {
+    log_info "=== Initial apt update ==="
+    apt-get update -y
+
     log_info "=== Installing base packages ==="
     bash "$SCRIPT_DIR/Server-Init/install_packages.sh"
 
+    mask
     log_info "=== Installing Docker ==="
     bash "$SCRIPT_DIR/Server-Init/install_docker.sh"
+
+    log_info "=== Refreshing apt after Docker source added ==="
+    unmask
+    apt-get update -y
 
     log_info "=== Installing Tailscale ==="
     bash "$SCRIPT_DIR/Server-Init/install_tailscale.sh"
