@@ -2,6 +2,8 @@
 
 Minimal Zsh dotfiles for servers and VPS, with oh-my-zsh + powerlevel10k.
 
+**One-liner:** `curl -fsSL https://raw.githubusercontent.com/Michael-YS/server-dotfiles/main/install.sh | sh -s -- --all`
+
 This setup is designed for:
 - Fast startup
 - Safe behavior in non-interactive shells
