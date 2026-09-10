@@ -37,7 +37,13 @@ EOF
 }
 
 install_dotfiles() {
-    bash "$SCRIPT_DIR/install_dotfiles.sh"
+    # --all runs the server setup as root, but shell configuration belongs to
+    # the user who invoked sudo rather than /root.
+    if [[ $EUID -eq 0 && -n "${SUDO_USER:-}" && "$SUDO_USER" != "root" ]]; then
+        sudo -H -u "$SUDO_USER" bash "$SCRIPT_DIR/install_dotfiles.sh"
+    else
+        bash "$SCRIPT_DIR/install_dotfiles.sh"
+    fi
 }
 
 install_server() {
