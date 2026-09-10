@@ -5,5 +5,5 @@ require_root
 # Install Tailscale
 curl -fsSL https://tailscale.com/install.sh | sh
 
-# Configure Tailscale
+# Authenticate interactively and print the verification URL.
 tailscale up

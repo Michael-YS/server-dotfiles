@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Re-exec with bash if running under sh (e.g., curl | sh on Ubuntu where sh=dash)
+# Re-exec with bash when this script was downloaded and invoked with sh.
 if [ -z "${BASH_VERSION:-}" ]; then
-    ARGS="$@"
-    TMP=$(mktemp)
-    cat > "$TMP"
-    exec bash "$TMP" $ARGS
+    if [ -f "$0" ]; then
+        exec bash "$0" "$@"
+    fi
+    echo "[ERR] This installer requires bash. Use: curl -fsSL <url> | bash" >&2
+    exit 1
 fi
 set -euo pipefail
 
@@ -19,7 +20,6 @@ fi
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/Server-Init/utils.sh"
-source "$SCRIPT_DIR/Server-Init/utils/mask_apt.sh"
 
 usage() {
     cat <<EOF
@@ -42,16 +42,11 @@ install_server() {
     log_info "=== Initial apt update ==="
     apt-get update -y
 
-    log_info "=== Installing base packages ==="
-    bash "$SCRIPT_DIR/Server-Init/install_packages.sh"
+    log_info "=== Installing all APT prerequisites ==="
+    SKIP_APT_UPDATE=1 bash "$SCRIPT_DIR/Server-Init/install_packages.sh"
 
-    mask
     log_info "=== Installing Docker ==="
-    bash "$SCRIPT_DIR/Server-Init/install_docker.sh"
-
-    log_info "=== Refreshing apt after Docker source added ==="
-    unmask
-    apt-get update -y
+    SKIP_APT_UPDATE=1 bash "$SCRIPT_DIR/Server-Init/install_docker.sh"
 
     log_info "=== Installing Tailscale ==="
     bash "$SCRIPT_DIR/Server-Init/install_tailscale.sh"
@@ -60,10 +55,10 @@ install_server() {
 }
 
 main() {
-    case "${1:-all}" in
+    case "${1:---dotfiles}" in
         --dotfiles)  install_dotfiles ;;
         --server)    require_root; install_server ;;
-        --all)       install_dotfiles; require_root; install_server ;;
+        --all)       require_root; install_dotfiles; install_server ;;
         -h|--help)   usage; exit 0 ;;
         *)           usage; exit 1 ;;
     esac

@@ -2,7 +2,7 @@
 
 Minimal Zsh dotfiles for servers and VPS, with oh-my-zsh + powerlevel10k.
 
-**One-liner:** `curl -fsSL https://raw.githubusercontent.com/Michael-YS/server-dotfiles/main/install.sh | sh -s -- --all`
+**One-liner:** `curl -fsSL https://raw.githubusercontent.com/Michael-YS/server-dotfiles/main/install.sh | bash`
 
 This setup is designed for:
 - Fast startup
@@ -24,8 +24,14 @@ This setup is designed for:
 
 ```text
 .
-├── install.sh
+├── install.sh             # unified installer entry point
+├── install_dotfiles.sh    # user-level dotfiles installer
 ├── README.md
+├── Server-Init/
+│   ├── install_packages.sh
+│   ├── install_docker.sh
+│   ├── install_tailscale.sh
+│   └── utils.sh
 └── zsh/
     ├── zshrc      # main entry point
     ├── zshrc.full # full config (oh-my-zsh + p10k + common settings)
@@ -48,10 +54,14 @@ This setup is designed for:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Michael-YS/server-dotfiles/main/install.sh -o /tmp/install.sh
-sh /tmp/install.sh
+bash /tmp/install.sh
 ```
 
 Notes:
+- With no option, the installer only installs user-level dotfiles.
+- Use `--server` as root to install base packages, Docker, and Tailscale.
+- Use `--all` as root to install both dotfiles and server packages.
+- Tailscale authentication is interactive and prints a verification URL during installation.
 - Installer first tries anonymous clone (for public repos).
 - If that fails and `GITHUB_TOKEN` is set, it retries with the token.
 - If `GITHUB_TOKEN` is not set, clone will fail.
@@ -60,7 +70,13 @@ Example:
 
 ```bash
 export GITHUB_TOKEN=your_token_here
-sh /tmp/install.sh
+bash /tmp/install.sh
+```
+
+Server-only example:
+
+```bash
+sudo bash /tmp/install.sh --server
 ```
 
 ### Option B: Manual install
