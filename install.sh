@@ -9,12 +9,14 @@ if [ -z "${BASH_VERSION:-}" ]; then
 fi
 set -euo pipefail
 
-# If utils.sh doesn't exist, we're running via curl - clone the repo first
+# If utils.sh doesn't exist, we're running from the one-liner. Bootstrap from
+# GitHub's archive instead of git: git is installed only after the full
+# installer starts.
 if [ ! -f "$(dirname "$0")/Server-Init/utils.sh" ]; then
-    REPO_URL="https://github.com/Michael-YS/server-dotfiles.git"
     TEMP_DIR=$(mktemp -d)
-    echo "[INFO] Cloning repo for remote installation..."
-    git clone --depth=1 "$REPO_URL" "$TEMP_DIR"
+    ARCHIVE_URL="https://codeload.github.com/Michael-YS/server-dotfiles/tar.gz/refs/heads/main"
+    echo "[INFO] Downloading installer files..."
+    curl -fsSL "$ARCHIVE_URL" | tar -xz --strip-components=1 -C "$TEMP_DIR"
     exec bash "$TEMP_DIR/install.sh" "$@"
 fi
 
@@ -58,7 +60,7 @@ main() {
     case "${1:---dotfiles}" in
         --dotfiles)  install_dotfiles ;;
         --server)    require_root; install_server ;;
-        --all)       require_root; install_dotfiles; install_server ;;
+        --all)       require_root; install_server; install_dotfiles ;;
         -h|--help)   usage; exit 0 ;;
         *)           usage; exit 1 ;;
     esac

@@ -2,7 +2,7 @@
 
 Minimal Zsh dotfiles for servers and VPS, with oh-my-zsh + powerlevel10k.
 
-**One-liner:** `curl -fsSL https://raw.githubusercontent.com/Michael-YS/server-dotfiles/main/install.sh | bash`
+**Server one-liner:** `curl -fsSL https://raw.githubusercontent.com/Michael-YS/server-dotfiles/main/install.sh | sudo bash -s -- --all`
 
 This setup is designed for:
 - Fast startup
@@ -54,11 +54,12 @@ This setup is designed for:
 
 ```bash
 curl -fsSL https://raw.githubusercontent.com/Michael-YS/server-dotfiles/main/install.sh -o /tmp/install.sh
-bash /tmp/install.sh
+sudo bash /tmp/install.sh --all
 ```
 
 Notes:
-- With no option, the installer only installs user-level dotfiles.
+- The server one-liner needs `curl`, `bash`, and `tar` from the base OS. It then installs every other APT-provided dependency before using it.
+- With no option, the installer only installs user-level dotfiles and requires `git` to already be installed.
 - Use `--server` as root to install base packages, Docker, and Tailscale.
 - Use `--all` as root to install both dotfiles and server packages.
 - Tailscale authentication is interactive and prints a verification URL during installation.
