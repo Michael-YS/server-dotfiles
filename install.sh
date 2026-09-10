@@ -17,6 +17,9 @@ if [ ! -f "$(dirname "$0")/Server-Init/utils.sh" ]; then
     ARCHIVE_URL="https://codeload.github.com/Michael-YS/server-dotfiles/tar.gz/refs/heads/main"
     echo "[INFO] Downloading installer files..."
     curl -fsSL "$ARCHIVE_URL" | tar -xz --strip-components=1 -C "$TEMP_DIR"
+    # --all later runs the dotfiles installer as the invoking user, who must
+    # be able to traverse this public archive directory.
+    chmod 755 "$TEMP_DIR"
     exec bash "$TEMP_DIR/install.sh" "$@"
 fi
 
